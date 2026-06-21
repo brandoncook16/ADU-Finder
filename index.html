@@ -5,56 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ADU Finder — Bay Area Peninsula</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
-#topbar{background:#fff;border-bottom:1px solid #e5e7eb;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex-shrink:0;}
+#topbar{background:#fff;border-bottom:1px solid #e5e7eb;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;flex-shrink:0;z-index:10;}
 h1{font-size:16px;font-weight:600;color:#111;white-space:nowrap;}
 h1 span{color:#1d6fa8;}
 .filters{display:flex;gap:6px;flex-wrap:wrap;flex:1;align-items:center;}
 select{font-size:12px;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px;background:#fff;color:#111;height:30px;}
-#search-btn{font-size:12px;padding:5px 16px;border:none;border-radius:6px;background:#1d6fa8;color:#fff;cursor:pointer;height:30px;display:flex;align-items:center;gap:5px;}
+#search-btn{font-size:12px;padding:5px 16px;border:none;border-radius:6px;background:#1d6fa8;color:#fff;cursor:pointer;height:30px;display:flex;align-items:center;gap:5px;white-space:nowrap;}
 #search-btn:hover{background:#155d8a;}
 #search-btn:disabled{background:#93c5e8;cursor:not-allowed;}
 #main{display:flex;flex:1;overflow:hidden;}
 #sidebar{width:340px;background:#fff;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
-#sidebar-header{padding:8px 14px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;}
+#sidebar-header{padding:8px 14px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
 #result-count{font-size:12px;color:#6b7280;}
 #source-pills{display:flex;gap:4px;}
 #listing-list{overflow-y:auto;flex:1;}
 .listing-card{padding:11px 14px;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:background 0.1s;}
-.listing-card:hover,.listing-card.active{background:#f8faff;}
+.listing-card:hover,.listing-card.active{background:#f0f7ff;}
 .listing-card.active{border-left:3px solid #1d6fa8;}
-.lc-img{width:100%;height:88px;object-fit:cover;border-radius:6px;margin-bottom:7px;background:#f3f4f6;}
-.lc-placeholder{width:100%;height:88px;border-radius:6px;margin-bottom:7px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;color:#9ca3af;}
+.lc-img{width:100%;height:88px;object-fit:cover;border-radius:6px;margin-bottom:7px;}
+.lc-placeholder{width:100%;height:88px;border-radius:6px;margin-bottom:7px;background:#f3f4f6;display:flex;align-items:center;justify-content:center;color:#9ca3af;font-size:28px;}
 .lc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
 .lc-price{font-size:15px;font-weight:600;color:#111;}
-.lc-badge{font-size:10px;padding:2px 7px;border-radius:99px;background:#dbeafe;color:#1d4ed8;white-space:nowrap;}
+.lc-badge{font-size:10px;padding:2px 7px;border-radius:99px;background:#dbeafe;color:#1d4ed8;white-space:nowrap;font-weight:500;}
 .lc-address{font-size:12px;color:#6b7280;margin:3px 0;line-height:1.4;}
 .lc-meta{display:flex;gap:10px;margin-top:4px;flex-wrap:wrap;}
 .lc-meta span{font-size:11px;color:#9ca3af;display:flex;align-items:center;gap:3px;}
 .stag{font-size:10px;padding:1px 6px;border-radius:4px;border:1px solid #e5e7eb;background:#f9fafb;color:#6b7280;}
 .stag.zillow{background:#dbeafe;color:#1d4ed8;border-color:#bfdbfe;}
 .stag.craigslist{background:#dcfce7;color:#15803d;border-color:#bbf7d0;}
-#map-area{flex:1;background:#dde4ed;position:relative;overflow:hidden;}
-#map-svg{width:100%;height:100%;}
-#detail-panel{position:absolute;right:0;top:0;bottom:0;width:300px;background:#fff;border-left:1px solid #e5e7eb;overflow-y:auto;transform:translateX(100%);transition:transform 0.2s;z-index:10;box-shadow:-4px 0 12px rgba(0,0,0,0.08);}
-#detail-panel.open{transform:translateX(0);}
-#detail-close{position:absolute;top:12px;right:12px;cursor:pointer;font-size:20px;color:#6b7280;background:none;border:none;line-height:1;}
-#detail-body{padding:16px;}
-.det-img{width:100%;height:150px;object-fit:cover;border-radius:8px;margin-bottom:12px;}
-.det-price{font-size:24px;font-weight:700;color:#111;}
-.det-address{font-size:13px;color:#6b7280;margin:4px 0 14px;display:flex;align-items:center;gap:4px;}
-.det-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
-.det-chip{font-size:12px;padding:4px 10px;border-radius:6px;background:#f3f4f6;color:#374151;border:1px solid #e5e7eb;}
-.det-link{display:flex;align-items:center;gap:6px;margin-top:14px;font-size:13px;color:#1d6fa8;text-decoration:none;padding:9px 14px;border:1px solid #bfdbfe;border-radius:8px;font-weight:500;}
-.det-link:hover{background:#f0f7ff;}
+#map{flex:1;position:relative;}
+/* Map style toggle */
+#map-controls{position:absolute;top:12px;right:12px;z-index:5;display:flex;flex-direction:column;gap:6px;}
+.map-ctrl-btn{background:#fff;border:1px solid #d1d5db;border-radius:6px;padding:6px 10px;font-size:11px;cursor:pointer;font-family:-apple-system,sans-serif;color:#374151;box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+.map-ctrl-btn:hover{background:#f9fafb;}
+.map-ctrl-btn.active{background:#1d6fa8;color:#fff;border-color:#1d6fa8;}
+/* Mapbox popup override */
+.mapboxgl-popup-content{border-radius:10px!important;padding:12px 14px!important;box-shadow:0 4px 16px rgba(0,0,0,0.12)!important;min-width:200px;}
+.mapboxgl-popup-close-button{font-size:16px;color:#6b7280;right:8px;top:6px;}
+.popup-price{font-size:16px;font-weight:700;color:#111;margin-bottom:2px;}
+.popup-address{font-size:12px;color:#6b7280;margin-bottom:8px;}
+.popup-chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
+.popup-chip{font-size:11px;padding:2px 8px;border-radius:4px;background:#f3f4f6;color:#374151;}
+.popup-link{font-size:12px;color:#1d6fa8;text-decoration:none;font-weight:500;}
+/* Custom marker */
+.marker{background:#1d6fa8;color:#fff;border:2px solid #fff;border-radius:99px;padding:3px 7px;font-size:10px;font-weight:600;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,0.2);white-space:nowrap;font-family:-apple-system,sans-serif;transition:transform 0.1s;}
+.marker:hover{transform:scale(1.1);}
+.marker.adu{background:#1d4ed8;}
+.marker.cl{background:#15803d;}
+.marker.active{transform:scale(1.2);z-index:10;}
 #status-bar{padding:4px 14px;font-size:11px;color:#9ca3af;border-top:1px solid #e5e7eb;background:#fff;display:flex;justify-content:space-between;flex-shrink:0;}
 #loading-msg{padding:40px 20px;text-align:center;color:#6b7280;font-size:13px;}
-#loading-msg i{font-size:36px;color:#d1d5db;display:block;margin-bottom:12px;}
 .spinner{animation:spin 1s linear infinite;display:inline-block;}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-.map-pin{cursor:pointer;}
 </style>
 </head>
 <body>
@@ -99,8 +106,8 @@ select{font-size:12px;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px
     </div>
     <div id="listing-list">
       <div id="loading-msg">
-        <i class="ti ti-home"></i>
-        Click Search to find ADUs<br>across the Peninsula
+        <i class="ti ti-home" style="font-size:36px;color:#d1d5db;display:block;margin-bottom:12px"></i>
+        Click Search to find rentals<br>across the Peninsula
       </div>
     </div>
     <div id="status-bar">
@@ -109,19 +116,41 @@ select{font-size:12px;padding:5px 8px;border:1px solid #d1d5db;border-radius:6px
     </div>
   </div>
 
-  <div id="map-area">
-    <svg id="map-svg" viewBox="0 0 600 520" xmlns="http://www.w3.org/2000/svg">
-      <rect width="600" height="520" fill="#dde4ed"/>
-      <text x="300" y="260" text-anchor="middle" fill="#aab5c4" font-size="14" font-family="-apple-system,sans-serif">Search to see listings on map</text>
-    </svg>
-    <div id="detail-panel">
-      <button id="detail-close" onclick="closeDetail()"><i class="ti ti-x"></i></button>
-      <div id="detail-body"></div>
+  <div id="map">
+    <div id="map-controls">
+      <button class="map-ctrl-btn active" id="btn-streets" onclick="setStyle('streets')">Streets</button>
+      <button class="map-ctrl-btn" id="btn-satellite" onclick="setStyle('satellite')">Satellite</button>
     </div>
   </div>
 </div>
 
 <script>
+mapboxgl.accessToken = 'pk.eyJ1IjoiYnJhbmRvbmNvb2sxNiIsImEiOiJjbXFuY2Vrb2IxOWl6MnBvbGViYnhvNGVrIn0.BJogG-8BLcmIsaAJyS4vMA';
+
+const map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/mapbox/streets-v12',
+  center: [-122.15, 37.38],
+  zoom: 10,
+});
+
+map.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+map.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
+
+function setStyle(type) {
+  if (type === 'satellite') {
+    map.setStyle('mapbox://styles/mapbox/satellite-streets-v12');
+    document.getElementById('btn-satellite').classList.add('active');
+    document.getElementById('btn-streets').classList.remove('active');
+  } else {
+    map.setStyle('mapbox://styles/mapbox/streets-v12');
+    document.getElementById('btn-streets').classList.add('active');
+    document.getElementById('btn-satellite').classList.remove('active');
+  }
+  // Re-render markers after style change
+  setTimeout(() => renderMarkers(currentListings), 500);
+}
+
 const CITIES={
   "Palo Alto":[37.4419,-122.1430],"Menlo Park":[37.4529,-122.1817],
   "Mountain View":[37.3861,-122.0839],"Redwood City":[37.4852,-122.2364],
@@ -130,66 +159,177 @@ const CITIES={
   "Los Altos":[37.3852,-122.1141],"Atherton":[37.4647,-122.1977],
   "Hillsborough":[37.5280,-122.3644],"Saratoga":[37.2638,-122.0231],"Campbell":[37.2872,-121.9500],
 };
-const MAP_BOUNDS={minLat:37.18,maxLat:37.60,minLng:-122.45,maxLng:-121.75};
-const ADU_RE=/\badu\b|accessory.dwelling|in[-\s]?law|guest.house|granny.flat|cottage|casita|jadu|detached.unit|garden.unit|rear.unit|back.house|above.garage/i;
-let allListings=[],activeIdx=null;
 
-function latLngToXY(lat,lng,w=600,h=520){
-  return[Math.round(((lng-MAP_BOUNDS.minLng)/(MAP_BOUNDS.maxLng-MAP_BOUNDS.minLng))*w),
-         Math.round(h-((lat-MAP_BOUNDS.minLat)/(MAP_BOUNDS.maxLat-MAP_BOUNDS.minLat))*h)];
+const ADU_RE=/\badu\b|accessory.dwelling|in[-\s]?law|guest.house|granny.flat|cottage|casita|jadu|detached.unit|garden.unit|rear.unit|back.house|above.garage/i;
+
+let allListings=[], currentListings=[], activeIdx=null;
+let markers=[], activePopup=null;
+
+function fmt(p){return p?"$"+p.toLocaleString()+"/mo":"Price TBD";}
+
+function clearMarkers(){
+  markers.forEach(m=>m.remove());
+  markers=[];
+  if(activePopup){activePopup.remove();activePopup=null;}
+}
+
+function renderMarkers(listings){
+  clearMarkers();
+  listings.forEach((l,i)=>{
+    if(!l.lat||!l.lng)return;
+    const el=document.createElement('div');
+    el.className='marker'+(l.isADU?' adu':'')+(l.source==='Craigslist'?' cl':'');
+    el.textContent=l.price?'$'+Math.round(l.price/1000)+'k':'ADU';
+    if(activeIdx===i)el.classList.add('active');
+
+    const popup=new mapboxgl.Popup({offset:20,closeButton:true,maxWidth:'260px'})
+      .setHTML(`
+        <div class="popup-price">${fmt(l.price)}</div>
+        <div class="popup-address"><i class="ti ti-map-pin"></i> ${l.address||l.city||'Bay Area'}</div>
+        <div class="popup-chips">
+          ${l.beds!==null?`<span class="popup-chip"><i class="ti ti-bed"></i> ${l.beds===0?'Studio':l.beds+' bd'}</span>`:''}
+          ${l.baths!==null?`<span class="popup-chip"><i class="ti ti-bath"></i> ${l.baths} ba</span>`:''}
+          ${l.sqft?`<span class="popup-chip">${l.sqft.toLocaleString()} sqft</span>`:''}
+          ${l.isADU?`<span class="popup-chip" style="background:#dbeafe;color:#1d4ed8">ADU</span>`:''}
+        </div>
+        ${l.url?`<a class="popup-link" href="${l.url}" target="_blank"><i class="ti ti-external-link"></i> View on ${l.source}</a>`:''}
+      `);
+
+    const marker=new mapboxgl.Marker(el)
+      .setLngLat([l.lng,l.lat])
+      .setPopup(popup)
+      .addTo(map);
+
+    el.addEventListener('click',()=>{
+      selectListing(i);
+      marker.togglePopup();
+    });
+
+    markers.push(marker);
+  });
+}
+
+function selectListing(i){
+  activeIdx=i;
+  const l=allListings[i];
+  document.querySelectorAll('.listing-card').forEach((el,idx)=>{
+    el.classList.toggle('active',idx===i);
+    if(idx===i)el.scrollIntoView({block:'nearest',behavior:'smooth'});
+  });
+  if(l.lat&&l.lng){
+    map.flyTo({center:[l.lng,l.lat],zoom:14,speed:1.2});
+  }
+}
+
+function applyFilters(listings){
+  const city=document.getElementById('f-city').value;
+  const maxP=parseInt(document.getElementById('f-price').value)||0;
+  const minB=document.getElementById('f-beds').value;
+  const minS=parseInt(document.getElementById('f-sqft').value)||0;
+  return listings.filter(l=>{
+    if(city&&l.city!==city)return false;
+    if(maxP&&l.price&&l.price>maxP)return false;
+    if(minB!==''&&l.beds!==null&&l.beds<parseInt(minB))return false;
+    if(minS&&l.sqft&&l.sqft<minS)return false;
+    return true;
+  });
+}
+
+function renderListings(listings){
+  currentListings=listings;
+  const list=document.getElementById('listing-list');
+  const zC=listings.filter(l=>l.source==='Zillow').length;
+  const cC=listings.filter(l=>l.source==='Craigslist').length;
+  const aduC=listings.filter(l=>l.isADU).length;
+
+  document.getElementById('source-pills').innerHTML=
+    (zC?`<span class="stag zillow">${zC} Zillow</span>`:'')+
+    (cC?`<span class="stag craigslist">${cC} CL</span>`:'');
+  document.getElementById('result-count').textContent=
+    listings.length+' listing'+(listings.length!==1?'s':'')+(aduC?` · ${aduC} ADU`:'');
+
+  if(!listings.length){
+    list.innerHTML=`<div id="loading-msg"><i class="ti ti-home-off" style="font-size:36px;color:#d1d5db;display:block;margin-bottom:12px"></i>No listings found.<br>Try adjusting your filters.</div>`;
+    clearMarkers();return;
+  }
+
+  list.innerHTML=listings.map((l,i)=>`
+    <div class="listing-card${activeIdx===i?' active':''}" onclick="selectListing(${i})">
+      ${l.photo?`<img class="lc-img" src="${l.photo}" loading="lazy" onerror="this.style.display='none'">`:
+        `<div class="lc-placeholder"><i class="ti ti-home"></i></div>`}
+      <div class="lc-top">
+        <span class="lc-price">${fmt(l.price)}</span>
+        ${l.isADU?`<span class="lc-badge">ADU</span>`:`<span class="stag ${l.source.toLowerCase()}">${l.source}</span>`}
+      </div>
+      <div class="lc-address">${l.address||l.city||'Bay Area'}</div>
+      <div class="lc-meta">
+        ${l.beds!==null?`<span><i class="ti ti-bed"></i>${l.beds===0?'Studio':l.beds+' bd'}</span>`:''}
+        ${l.baths!==null?`<span><i class="ti ti-bath"></i>${l.baths} ba</span>`:''}
+        ${l.sqft?`<span><i class="ti ti-ruler"></i>${l.sqft.toLocaleString()} sqft</span>`:''}
+      </div>
+    </div>`).join('');
+
+  renderMarkers(listings);
+
+  // Fit map to listings
+  if(listings.filter(l=>l.lat&&l.lng).length>0){
+    const bounds=new mapboxgl.LngLatBounds();
+    listings.filter(l=>l.lat&&l.lng).forEach(l=>bounds.extend([l.lng,l.lat]));
+    map.fitBounds(bounds,{padding:60,maxZoom:13});
+  }
 }
 
 async function fetchZillowCity(city){
   try{
-    const r=await fetch(`/api/search?location=${encodeURIComponent(city+", CA")}&page=1`);
+    const r=await fetch(`/api/search?location=${encodeURIComponent(city+', CA')}&page=1`);
     if(!r.ok)return[];
     const data=await r.json();
     const arr=data.results||data.data||data.listings||(Array.isArray(data)?data:[]);
     return arr.map(p=>({
-      title:p.address||"",address:p.address||"",
+      title:p.address||'',address:p.address||'',
       price:p.price||0,beds:p.beds??p.bedrooms??null,
       baths:p.baths??p.bathrooms??null,sqft:p.sqft??p.livingArea??null,
       lat:p.latitude??(CITIES[city][0]+(Math.random()-.5)*.02),
       lng:p.longitude??(CITIES[city][1]+(Math.random()-.5)*.02),
       photo:p.photo_url||p.imgSrc||null,
       url:p.url||p.detailUrl||p.hdpUrl||null,
-      city,source:"Zillow",
-      isADU:ADU_RE.test([p.address,p.description,p.title,p.homeType].filter(Boolean).join(" ")),
+      city,source:'Zillow',
+      isADU:ADU_RE.test([p.address,p.description,p.title,p.homeType].filter(Boolean).join(' ')),
     }));
   }catch(e){return[];}
 }
 
 async function fetchCraigslist(){
-  const proxy="https://api.allorigins.win/raw?url=";
+  const proxy='https://api.allorigins.win/raw?url=';
   const feeds=[
-    "https://sfbay.craigslist.org/search/sby/apa?query=ADU&format=rss",
-    "https://sfbay.craigslist.org/search/pen/apa?query=ADU&format=rss",
-    "https://sfbay.craigslist.org/search/sby/apa?query=accessory+dwelling&format=rss",
-    "https://sfbay.craigslist.org/search/pen/apa?query=in-law+unit&format=rss",
-    "https://sfbay.craigslist.org/search/pen/apa?query=guest+house&format=rss",
+    'https://sfbay.craigslist.org/search/sby/apa?query=ADU&format=rss',
+    'https://sfbay.craigslist.org/search/pen/apa?query=ADU&format=rss',
+    'https://sfbay.craigslist.org/search/sby/apa?query=accessory+dwelling&format=rss',
+    'https://sfbay.craigslist.org/search/pen/apa?query=in-law+unit&format=rss',
+    'https://sfbay.craigslist.org/search/pen/apa?query=guest+house&format=rss',
   ];
   const results=[],seen=new Set();
   for(const feed of feeds){
     try{
       const r=await fetch(proxy+encodeURIComponent(feed));
       if(!r.ok)continue;
-      const doc=new DOMParser().parseFromString(await r.text(),"application/xml");
-      doc.querySelectorAll("item").forEach(item=>{
-        const link=item.querySelector("link")?.textContent||"";
+      const doc=new DOMParser().parseFromString(await r.text(),'application/xml');
+      doc.querySelectorAll('item').forEach(item=>{
+        const link=item.querySelector('link')?.textContent||'';
         if(seen.has(link))return;seen.add(link);
-        const title=item.querySelector("title")?.textContent||"";
-        const desc=(item.querySelector("description")?.textContent||"").replace(/<[^>]*>/g,"");
-        let city="";
+        const title=item.querySelector('title')?.textContent||'';
+        const desc=(item.querySelector('description')?.textContent||'').replace(/<[^>]*>/g,'');
+        let city='';
         for(const c of Object.keys(CITIES)){if((title+desc).toLowerCase().includes(c.toLowerCase())){city=c;break;}}
         const pm=(title+desc).match(/\$([0-9,]+)/);
         const bm=(title+desc).match(/(\d)\s*(?:br|bed)/i);
         results.push({
-          title:title.replace(/&amp;/g,"&"),address:city||"Bay Area",
-          price:pm?parseInt(pm[1].replace(/,/g,"")):0,
+          title:title.replace(/&amp;/g,'&'),address:city||'Bay Area',
+          price:pm?parseInt(pm[1].replace(/,/g,'')):0,
           beds:bm?parseInt(bm[1]):null,baths:null,sqft:null,
           lat:city?CITIES[city][0]+(Math.random()-.5)*.02:null,
           lng:city?CITIES[city][1]+(Math.random()-.5)*.02:null,
-          photo:null,url:link,city,source:"Craigslist",isADU:true,
+          photo:null,url:link,city,source:'Craigslist',isADU:true,
         });
       });
     }catch(e){}
@@ -197,116 +337,15 @@ async function fetchCraigslist(){
   return results;
 }
 
-function applyFilters(listings){
-  const city=document.getElementById("f-city").value;
-  const maxP=parseInt(document.getElementById("f-price").value)||0;
-  const minB=document.getElementById("f-beds").value;
-  const minS=parseInt(document.getElementById("f-sqft").value)||0;
-  return listings.filter(l=>{
-    if(city&&l.city!==city)return false;
-    if(maxP&&l.price&&l.price>maxP)return false;
-    if(minB!==""&&l.beds!==null&&l.beds<parseInt(minB))return false;
-    if(minS&&l.sqft&&l.sqft<minS)return false;
-    return true;
-  });
-}
-
-function fmt(p){return p?"$"+p.toLocaleString()+"/mo":"Price TBD";}
-
-function renderListings(listings){
-  const list=document.getElementById("listing-list");
-  const zC=listings.filter(l=>l.source==="Zillow").length;
-  const cC=listings.filter(l=>l.source==="Craigslist").length;
-  const aduC=listings.filter(l=>l.isADU).length;
-  document.getElementById("source-pills").innerHTML=
-    (zC?`<span class="stag zillow">${zC} Zillow</span>`:"")+
-    (cC?`<span class="stag craigslist">${cC} CL</span>`:"");
-  document.getElementById("result-count").textContent=
-    listings.length+" listing"+(listings.length!==1?"s":"")+(aduC?` · ${aduC} ADU`:"");
-
-  if(!listings.length){
-    list.innerHTML=`<div id="loading-msg"><i class="ti ti-home-off"></i>No listings found.<br>Try adjusting your filters.</div>`;
-    renderMap(listings);return;
-  }
-  list.innerHTML=listings.map((l,i)=>`
-    <div class="listing-card${activeIdx===i?" active":""}" onclick="selectListing(${i})">
-      ${l.photo?`<img class="lc-img" src="${l.photo}" loading="lazy" onerror="this.style.display='none'">`:
-        `<div class="lc-placeholder"><i class="ti ti-home" style="font-size:28px"></i></div>`}
-      <div class="lc-top">
-        <span class="lc-price">${fmt(l.price)}</span>
-        ${l.isADU?`<span class="lc-badge">ADU</span>`:`<span class="stag ${l.source.toLowerCase()}">${l.source}</span>`}
-      </div>
-      <div class="lc-address">${l.address||l.city||"Bay Area"}</div>
-      <div class="lc-meta">
-        ${l.beds!==null?`<span><i class="ti ti-bed"></i>${l.beds===0?"Studio":l.beds+" bd"}</span>`:""}
-        ${l.baths!==null?`<span><i class="ti ti-bath"></i>${l.baths} ba</span>`:""}
-        ${l.sqft?`<span><i class="ti ti-ruler"></i>${l.sqft.toLocaleString()} sqft</span>`:""}
-      </div>
-    </div>`).join("");
-  renderMap(listings);
-}
-
-function renderMap(listings){
-  const svg=document.getElementById("map-svg");
-  const labels=Object.entries(CITIES).map(([n,[la,ln]])=>{
-    const[x,y]=latLngToXY(la,ln);
-    return`<text x="${x}" y="${y-12}" text-anchor="middle" fill="#8fa0b8" font-size="9" font-family="-apple-system,sans-serif">${n}</text><circle cx="${x}" cy="${y-4}" r="2" fill="#aab5c4"/>`;
-  }).join("");
-  const pins=listings.filter(l=>l.lat&&l.lng).map((l,i)=>{
-    const[x,y]=latLngToXY(l.lat,l.lng);
-    const a=activeIdx===i;
-    const c=l.isADU?(a?"#1d4ed8":"#3b82f6"):(a?"#374151":"#9ca3af");
-    return`<g class="map-pin" onclick="selectListing(${i})">
-      <circle cx="${x}" cy="${y}" r="${a?12:8}" fill="${c}" stroke="#fff" stroke-width="2" opacity="0.9"/>
-      <text x="${x}" y="${y+1}" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="6" font-family="-apple-system,sans-serif">${l.price?"$"+Math.round(l.price/100)/10+"k":"–"}</text>
-    </g>`;
-  }).join("");
-  svg.innerHTML=`<rect width="600" height="520" fill="#dde4ed"/>
-    <line x1="0" y1="260" x2="600" y2="260" stroke="#c8d2e0" stroke-width="1.5"/>
-    <line x1="300" y1="0" x2="300" y2="520" stroke="#c8d2e0" stroke-width="1.5"/>
-    <line x1="0" y1="130" x2="600" y2="130" stroke="#c8d2e0" stroke-width="0.75"/>
-    <line x1="0" y1="390" x2="600" y2="390" stroke="#c8d2e0" stroke-width="0.75"/>
-    <line x1="150" y1="0" x2="150" y2="520" stroke="#c8d2e0" stroke-width="0.75"/>
-    <line x1="450" y1="0" x2="450" y2="520" stroke="#c8d2e0" stroke-width="0.75"/>
-    <ellipse cx="130" cy="165" rx="45" ry="28" fill="#c5d9e8" opacity="0.4"/>
-    ${labels}${pins}`;
-}
-
-function selectListing(i){
-  activeIdx=i;const l=allListings[i];
-  document.querySelectorAll(".listing-card").forEach((el,idx)=>el.classList.toggle("active",idx===i));
-  document.getElementById("detail-panel").classList.add("open");
-  document.getElementById("detail-body").innerHTML=`
-    <div style="margin-top:8px">
-      ${l.photo?`<img class="det-img" src="${l.photo}" onerror="this.style.display='none'">` :""}
-      <div class="det-price">${fmt(l.price)}</div>
-      <div class="det-address"><i class="ti ti-map-pin"></i>${l.address||l.city}</div>
-      <div class="det-chips">
-        ${l.beds!==null?`<span class="det-chip"><i class="ti ti-bed"></i> ${l.beds===0?"Studio":l.beds+" bed"}</span>`:""}
-        ${l.baths!==null?`<span class="det-chip"><i class="ti ti-bath"></i> ${l.baths} bath</span>`:""}
-        ${l.sqft?`<span class="det-chip">${l.sqft.toLocaleString()} sqft</span>`:""}
-        ${l.isADU?`<span class="lc-badge" style="font-size:11px;padding:3px 9px">ADU</span>`:""}
-      </div>
-      ${l.url?`<a class="det-link" href="${l.url}" target="_blank"><i class="ti ti-external-link"></i> View on ${l.source}</a>`:""}
-    </div>`;
-  renderMap(applyFilters(allListings));
-}
-
-function closeDetail(){
-  activeIdx=null;
-  document.getElementById("detail-panel").classList.remove("open");
-  renderMap(applyFilters(allListings));
-}
-
 async function runSearch(){
-  const btn=document.getElementById("search-btn");
+  const btn=document.getElementById('search-btn');
   btn.disabled=true;
   btn.innerHTML='<span class="spinner"><i class="ti ti-loader"></i></span> Searching...';
-  document.getElementById("listing-list").innerHTML=`<div id="loading-msg"><i class="ti ti-loader spinner" style="font-size:28px"></i>Fetching live listings...</div>`;
-  document.getElementById("result-count").textContent="Searching...";
-  activeIdx=null;
+  document.getElementById('listing-list').innerHTML=`<div id="loading-msg"><i class="ti ti-loader spinner" style="font-size:28px;display:block;margin-bottom:12px"></i>Fetching live listings...</div>`;
+  document.getElementById('result-count').textContent='Searching...';
+  activeIdx=null;clearMarkers();
 
-  const selectedCity=document.getElementById("f-city").value;
+  const selectedCity=document.getElementById('f-city').value;
   const citiesToSearch=selectedCity?[selectedCity]:Object.keys(CITIES);
 
   const[clListings,...zResults]=await Promise.all([
@@ -322,12 +361,12 @@ async function runSearch(){
   }).sort((a,b)=>(b.isADU-a.isADU)||(a.price||99999)-(b.price||99999));
 
   renderListings(applyFilters(allListings));
-  document.getElementById("status-right").textContent="Updated "+new Date().toLocaleTimeString();
+  document.getElementById('status-right').textContent='Updated '+new Date().toLocaleTimeString();
   btn.disabled=false;
   btn.innerHTML='<i class="ti ti-search"></i> Search';
 }
 
-["f-city","f-price","f-beds","f-sqft"].forEach(id=>{
+['f-city','f-price','f-beds','f-sqft'].forEach(id=>{
   document.getElementById(id).onchange=()=>{if(allListings.length)renderListings(applyFilters(allListings));};
 });
 </script>
